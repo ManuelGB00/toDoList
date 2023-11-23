@@ -1,36 +1,58 @@
-import{ToDoList} from "toDoList.js";
+const toDoList = [];
 
-const keyName="chiaveToDoList1234";
-const tasks=JSON.parse(localStorage.getItem(keyName))??[];
-const todoList=document.querySelector("#todo-list");
-popolaListaFront(tasks);
+class ToDo {
+  constructor(task, done) {
+    this.task = task;
+    this.done = done;
+  }
+}
 
+function addTask(task) {
+  const newTask = new ToDo(task, false);
+  toDoList.push(newTask);
+  // Set in local storage the todolist
+  localStorage.setItem("toDoList", JSON.stringify(toDoList));
+  updateTodoList();
+}
 
-//eventListener all'inserimento di una nuova task
-document.querySelector("#add").addEventListener("click", function (e) {
-    let taskText=document.querySelector("#taskInput").value;
-    addTaskToList(taskText);
+function removeTask(task) {
+  const localStorageList = JSON.parse(localStorage.getItem("toDoList")) ?? [];
+  const newList = localStorageList.filter((item) => item.task !== task.task);
+  localStorage.removeItem("toDoList");
+  // Update the localStorage with the modified list
+  localStorage.setItem("toDoList", JSON.stringify(newList));
+  updateTodoList();
+}
 
-    while (todoList.firstChild) {
-        todoList.removeChild(todoList.firstChild);
-      }
-      
-    popolaListaFront(tasks);
+function updateTodoList() {
+  console.log(localStorage.getItem("toDoList"));
+  const todoListElement = document.getElementById("todo-list");
+  todoListElement.innerHTML = "";
+
+  const localStorageList = JSON.parse(localStorage.getItem("toDoList")) ?? [];
+  for (const task of localStorageList) {
+    const listItem = document.createElement("li");
+    listItem.className = "list-group-item";
+    listItem.textContent = task.task;
+
+    // Add a click event listener to each list item
+    listItem.addEventListener("click", function () {
+      removeTask(task);
+    });
+    todoListElement.appendChild(listItem);
+  }
+}
+
+const btnAdd = document.getElementById("add");
+
+btnAdd.addEventListener("click", function () {
+  const taskInput = document.getElementById("taskInput");
+  const newTaskText = taskInput.value.trim();
+
+  if (newTaskText !== "") {
+    addTask(newTaskText);
+    taskInput.value = ""; // Clear the input field after adding the task
+  }
 });
 
-//funzione per aggiungere il testo ad un oggetto ed aggiungere l'oggetto all'array di tasks
-function addTaskToList(taskText){
-    let nuovaTask=new ToDoList(taskText);
-    tasks.push(nuovaTask);
-    localStorage.setItem(keyName, JSON.stringify(tasks));
-}
-
-function popolaListaFront(tasks){
-    for(taskSingola of tasks){
-        let li=document.createElement("li");
-        li.textContent=taskSingola.task;
-        todoList.appendChild(li);
-
-    }
-    
-}
+updateTodoList();
