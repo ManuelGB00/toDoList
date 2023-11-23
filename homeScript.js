@@ -1,4 +1,4 @@
-const toDoList = [];
+const toDoList = JSON.parse(localStorage.getItem("toDoList")) || [];
 
 class ToDo {
   constructor(task, done) {
@@ -10,35 +10,30 @@ class ToDo {
 function addTask(task) {
   const newTask = new ToDo(task, false);
   toDoList.push(newTask);
-  // Set in local storage the todolist
   localStorage.setItem("toDoList", JSON.stringify(toDoList));
   updateTodoList();
 }
 
 function removeTask(task) {
-  const localStorageList = JSON.parse(localStorage.getItem("toDoList")) ?? [];
-  const newList = localStorageList.filter((item) => item.task !== task.task);
-  localStorage.removeItem("toDoList");
-  // Update the localStorage with the modified list
-  localStorage.setItem("toDoList", JSON.stringify(newList));
+  const newList = toDoList.filter((item) => item.task !== task.task);
+  toDoList.splice(0, toDoList.length, ...newList);
+  localStorage.setItem("toDoList", JSON.stringify(toDoList));
   updateTodoList();
 }
 
 function updateTodoList() {
-  console.log(localStorage.getItem("toDoList"));
   const todoListElement = document.getElementById("todo-list");
   todoListElement.innerHTML = "";
 
-  const localStorageList = JSON.parse(localStorage.getItem("toDoList")) ?? [];
-  for (const task of localStorageList) {
+  for (const task of toDoList) {
     const listItem = document.createElement("li");
     listItem.className = "list-group-item";
     listItem.textContent = task.task;
 
-    // Add a click event listener to each list item
     listItem.addEventListener("click", function () {
       removeTask(task);
     });
+
     todoListElement.appendChild(listItem);
   }
 }
@@ -51,7 +46,7 @@ btnAdd.addEventListener("click", function () {
 
   if (newTaskText !== "") {
     addTask(newTaskText);
-    taskInput.value = ""; // Clear the input field after adding the task
+    taskInput.value = "";
   }
 });
 
